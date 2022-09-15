@@ -16,11 +16,11 @@
     "wpsjs"
   ],
   "author": {
-    "name": "zouyf",
-    "email": "156411203@qq.com"
+    "name": "liriansu",
+    "email": "liriansu@gmail.com"
   },
   "bin": {
-    "wpsjs": "./src/index.js"
+    "wpsjs-next": "./src/index.js"
   },
   "license": "ISC",
   "devDependencies": {
