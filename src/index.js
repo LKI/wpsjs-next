@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var program = require("commander");
+const program = require("commander");
 const chalk = require("chalk");
 const leven = require("leven");
 const minimist = require("minimist");
@@ -27,7 +27,7 @@ program
   .command("join")
   .description("接入 WPS 加载项，将已有的前端工程快速提升为 WPS 加载项，开始应用与 WPS 的交互功能")
   .allowUnknownOption()
-  .action((plugin) => {
+  .action((cmd) => {
     require("./lib/join")();
   });
 

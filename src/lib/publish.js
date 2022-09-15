@@ -140,9 +140,9 @@ async function publishInner() {
   let pubHtml = fs.readFileSync(pubHtmlPath, "utf-8");
   pubHtml = pubHtml.replace(/PUBLISH_REPLACE_STRING/, outData);
   if (addon.multiUser === "true") {
-    pubHtml = pubHtml.replace(/SERVERID_REPLEASE_STRING/, "getServerId()");
+    pubHtml = pubHtml.replace(/SERVERID_REPLACE_STRING/, "getServerId()");
   } else {
-    pubHtml = pubHtml.replace(/SERVERID_REPLEASE_STRING/, "undefined");
+    pubHtml = pubHtml.replace(/SERVERID_REPLACE_STRING/, "undefined");
   }
   let outHtmlPath = path.resolve(publishRoot, pubHtmlName);
   fs.writeFileSync(outHtmlPath, pubHtml);
