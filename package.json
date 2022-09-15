@@ -4,6 +4,8 @@
   "description": "用于开发wps加载项的工具包",
   "main": "./src/index.js",
   "scripts": {
+    "check": "prettier --check --cache .",
+    "fix": "prettier --write --cache .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,6 +26,7 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "prettier": "^2.7.1",
     "wps-jsapi": "latest"
   },
   "dependencies": {
