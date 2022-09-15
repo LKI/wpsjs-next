@@ -1,4 +1,5 @@
 # wpsjs-next
+[![npm](https://img.shields.io/npm/v/wpsjs-next)](https://www.npmjs.com/package/wpsjs-next)
 
 金山原项目已经一年没更新了，出于自动化的需求，接手项目更新。
 
