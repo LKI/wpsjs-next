@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge chrome=1">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=8">
+    <title>业务系统模拟页面</title>
+    <script type="text/javascript" src="./wpsjsrpcsdk.js"></script>
+    <script type="text/javascript" src="./project.js"></script>
+</head>
+
+<body>
+    <div class="divTitle">XXX业务系统-前端模拟页面</div>
+    <div>
+        <div class="partItem">单进程模式：</div>
+        <div class="divItem">
+            <li><a href="#" onclick="openOfficeFile('http://我是文件的服务端地址')">打开业务系统文件</a></li>
+        </div>
+        <div class="divItem">
+            <li><a href="#" onclick="onDivClick('getDocumentName', false)">获取wps当前打开的文件的文件名</a></li>
+        </div>
+        <div class="divItem">
+            <li><a href="#" onclick="onDivClick('newDocument', true)">新建一个文件</a></li>
+        </div>
+        <div class="divItem">请点击wps加载项“给业务系统发通知”按钮，体验加载项主动发送消息</div>
+        <div class="divItem">消息内容：<span style="font-weight: bolder;color: red;" id="webnotifyspan"></span></div>
+    </div>
+
+    <div id='tishi'>
+        <p style="text-align: center;">正在打开文件</p>
+        <p>
+            <progress id="openFile" value="0" max="100">
+                <p style="text-align: center;">当前进度<span id="openfilespan" style="color:crimson;">0</span>%</p>
+            </progress>
+        </p>
+    </div>
+
+    <div>
+        <div class="partItem">多进程模式：</div>
+        <li><a href="#" onclick="openFileInSilentMode()">新建客户端：静默打开文件</a>
+        </li>
+        <div id="rootClients"></div>
+    </div>
+
+    <div class="divNote">
+        <hr>
+        <p>
+            更详细的与B/S业务系统集成的能力相关的示例，请参考：
+            <span style="font-weight: bolder;color: slateblue;"><a
+                    href="https://code.aliyun.com/zouyingfeng/wps/blob/master/README.md" target="_blank">
+                    https://code.aliyun.com/zouyingfeng/wps/blob/master/README.md
+                </a></span>
+        </p>
+        <p>
+            和我们一起构建WPS开发者社区，可以来<a href="https://zhuanlan.zhihu.com/c_1256350603921915904"
+                target="_blank">「WPS二次开发」</a>转转，留下您的评论。
+        </p>
+    </div>
+</body>
+<script>
+    //实际的开发中，业务系统与wps加载项的交互代码如下：
+    var WebNotifycount = 0;
+    var callbackFunc = function (result) {
+        if (result.status == 0) {
+            //下面这行代码用来注册从wps加载项返回的消息的接收函数
+            WpsInvoke.RegWebNotify(projInfo.type, projInfo.name, function (messageText) {
+                var span = document.getElementById("webnotifyspan")
+                span.innerHTML = "(次数：" + ++WebNotifycount + ")：" + messageText;
+            })
+            alert(result.response)
+        }
+        else
+            alert(result.message)
+    }
+
+    function openOfficeFile(param) {
+        var invokeParam = {
+            flag: "openOfficeFile",
+            filepath: param
+        } //根据需求任意定义
+        WpsInvoke.InvokeAsHttp(
+            projInfo.type,
+            projInfo.name, //wps加载项的名字，在实际项目中写上对应的名字
+            "openOfficeFileFromSystemDemo", //要调用的在wps加载项中的函数名
+            JSON.stringify(invokeParam), //调用的在wps加载项中的函数要传递的数据，是一个json对象，根据业务系统需求任意定义
+            callbackFunc) //回调函数，wps加载项中InvokeFromSystemDemo这个函数的返回值作为这个函数的参数
+    }
+
+    function onDivClick(param, showToFront) {
+        var invokeParam = {
+            按需求定义: "安需求给值",
+            Index: param,
+            AppType: projInfo.type,
+            自定义: {
+                xxx定义: "xxx值"
+            }
+        } //根据需求任意定义
+        WpsInvoke.InvokeAsHttp(
+            projInfo.type,
+            projInfo.name, //wps加载项的名字，在实际项目中写上对应的名字
+            "InvokeFromSystemDemo", //要调用的在wps加载项中的函数名
+            JSON.stringify(invokeParam), //调用的在wps加载项中的函数要传递的数据，是一个json对象，根据业务系统需求任意定义
+            callbackFunc, //回调函数，wps加载项中InvokeFromSystemDemo这个函数的返回值作为这个函数的参数 
+            showToFront) //设置wps是否显示到最前面来
+    }
+
+    //WebNotifyUseTimeout()
+    //EnableMultiUser();
+    var clientCount = 0;
+    var dialogProgress;  //打开文件进度计数
+    var interval;   //window.setInterval对象
+    function openFileInSilentMode() {
+        var dlg = document.getElementById("tishi");
+        dlg.style.display = 'block';
+        dialogProgress = 0
+        interval = setInterval(updateProgress, 100)
+        document.body.style.pointerEvents = "none"
+
+        var houzui = ".xlsx";
+        if (projInfo.type == "wps")
+            houzui = ".docx"
+        else if (projInfo.type == "wpp")
+            houzui = ".pptx"
+        var url = (location.protocol + "//" + location.host + location.pathname).slice(0, -15) + projInfo.type + "Demo" + houzui
+        var wpsClient = new WpsClient(projInfo.type);
+        var eleId = "clientId" + (++clientCount);
+        var WebNotifycount = 0;
+        wpsClient.onMessage = function (messageText) {
+            ++WebNotifycount;
+            var spanDiv = document.getElementById("webnotifyCount" + eleId);
+            spanDiv.innerText = "(次数：" + WebNotifycount + ")：";
+            var span = document.getElementById("webnotifyspan" + eleId);
+            span.innerHTML = messageText;
+        }
+        //先静默启动客户端，在回调函数里面实现打开大文件
+        wpsClient.StartWpsInSilentMode(projInfo.name, function () {
+            var invokeParam = {
+                按需求定义: "安需求给值",
+                Index: 'OpenFile',
+                AppType: projInfo.type,
+                filepath: url,      //要打开的文件路径
+                自定义: {
+                    xxx定义: "xxx值"
+                }
+            } //根据需求任意定义
+            wpsClient.InvokeAsHttp(
+                projInfo.name, //wps加载项的名字，在实际项目中写上对应的名字
+                "InvokeFromSystemDemo", //要调用的在wps加载项中的函数名
+                JSON.stringify(invokeParam), //调用的在wps加载项中的函数要传递的数据，是一个json对象，根据业务系统需求任意定义
+                openFileCallbackFunc, //回调函数，wps加载项中InvokeFromSystemDemo这个函数的返回值作为这个函数的参数 
+                false) //设置wps是否显示到最前面来
+        });
+
+        //打开文件成功后的交互代码
+        function openFileCallbackFunc(result) {
+            clearInterval(interval);
+            //console.log(JSON.stringify(result))
+            if (result.status !== 0) {
+                setProgress(0)
+                var dlg = document.getElementById("tishi");
+                dlg.style.display = 'none';
+                document.body.style.pointerEvents = "auto"
+                alert(result.message)
+                return;
+            }
+            setProgress(100);
+            wpsClient.ShowToFront(projInfo.name, function () {
+                setProgress(0)
+                var dlg = document.getElementById("tishi");
+                dlg.style.display = 'none';
+                document.body.style.pointerEvents = "auto"
+            });
+
+            var rootElement = document.getElementById("rootClients");
+            var ele = document.createElement("div");
+            ele.className = "addonItem";
+            ele.id = eleId;
+            ele.client = wpsClient;
+            ele.innerHTML =
+                '<div class="clientItem">客户端' + clientCount + '\n' +
+                '<div class="divItem"><li><a href="#" onclick="onClientGetFileName(' + "'" + ele.id + "'" + ',' + "'getDocumentName'" + ', false' + ')">获取wps当前打开的文件的文件名</a></li></div>\n' +
+                '<div class="divItem"><li><a href="#" onclick="onClientGetFileName(' + "'" + ele.id + "'" + ',' + "'newDocument'" + ', true' + ')">新建一个文件</a></li></div>\n' +
+                '<div class="divItem">加载项主动发送的消息内容<span id="webnotifyCount' + ele.id + '"></span><span style="font-weight: bolder;color: red;" id="webnotifyspan' + ele.id + '"></span></div>'
+            '</div>';
+            rootElement.appendChild(ele);
+        }
+    }
+
+    function onClientGetFileName(clientId, param, showToFront) {
+        var invokeParam = {
+            按需求定义: "安需求给值",
+            Index: param,
+            AppType: projInfo.type,
+            自定义: {
+                xxx定义: "xxx值"
+            }
+        } //根据需求任意定义
+        var ele = document.getElementById(clientId);
+        ele.client.InvokeAsHttp(
+            projInfo.name, //wps加载项的名字，在实际项目中写上对应的名字
+            "InvokeFromSystemDemo", //要调用的在wps加载项中的函数名
+            JSON.stringify(invokeParam), //调用的在wps加载项中的函数要传递的数据，是一个json对象，根据业务系统需求任意定义
+            clientCallbackFunc, //回调函数，wps加载项中InvokeFromSystemDemo这个函数的返回值作为这个函数的参数 
+            showToFront) //设置wps是否显示到最前面来
+
+            function clientCallbackFunc(result) {
+            if (result.status !== 0){
+                if (result.message == "Failed to send message to WPS.") {
+                    ele.client.IsClientRunning(function (status) {
+                        if (status.response == "Client is running.")
+                            alert("任务发送失败，WPS 正在执行其他任务，请前往WPS完成当前任务")
+                        else
+                            alert("WPS 客户端被关闭了!")
+                    })
+                }
+                else {
+                    alert(result.message)
+                }
+            }
+            else {
+                alert(result.response)
+            }
+        }
+    }
+
+    function updateProgress() {
+        setProgress(++dialogProgress);
+    }
+    function setProgress(newValue) {
+        if (newValue < 90 || newValue == 100) {
+            var progress = document.getElementById('openFile');
+            progress.value = newValue;
+            var span = document.getElementById("openfilespan")
+            span.innerHTML = newValue;
+        }
+    }
+</script>
+<style>
+    .divTitle {
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 40px;
+        font-weight: bolder;
+        text-align: center;
+    }
+
+    .divItem {
+        margin: 5px;
+    }
+
+    .divNote {
+        margin-top: 60px;
+    }
+
+    #rootClients {
+        padding-left: 20px;
+        font-size: 15px;
+    }
+
+    .clientItem {
+        margin: 5px;
+    }
+
+    .partItem {
+        font-size: 20px;
+        margin: 5px;
+        padding-top: 20px;
+    }
+
+    #tishi {
+        position: absolute;
+        left: 600px;
+        min-height: 150px;
+        border: 1px solid black;
+        padding: 10px 12px;
+        display: none;
+        background: #fff;
+
+    }
+</style>
+
+</html>
