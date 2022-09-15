@@ -4,8 +4,12 @@
   "description": "用于开发wps加载项的工具包",
   "main": "./src/index.js",
   "scripts": {
-    "check": "prettier --check --cache .",
-    "fix": "prettier --write --cache .",
+    "check": "npm run check-eslint && npm run check-prettier",
+    "check-eslint": "eslint --cache .",
+    "check-prettier": "prettier --check --cache .",
+    "fix": "npm run fix-eslint && npm run fix-prettier",
+    "fix-eslint": "eslint --fix --cache .",
+    "fix-prettier": "prettier --write --cache .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,6 +30,8 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "eslint": "8.22.0",
+    "eslint-config-prettier": "^8.5.0",
     "prettier": "^2.7.1",
     "wps-jsapi": "latest"
   },
