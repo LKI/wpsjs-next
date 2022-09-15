@@ -57,6 +57,9 @@ program
   .command("publish")
   .description("发布 WPS 加载项")
   .option("-s, --serverUrl <serverUrl>", "服务器地址")
+  .option("-m, --isMultiUser", "是否支持多个用户（默认为单个用户）")
+  .option("-o, --isOnline", "是否为在线模式（默认为离线模式）")
+  .option("-d, --isDynamicUrl", "是否动态生成插件网址（默认为写死的）")
   .allowUnknownOption()
   .action((cmd) => {
     const options = cleanArgs(cmd);

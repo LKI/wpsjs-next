@@ -231,7 +231,7 @@
           ? _encode(u)
           : _encode(String(u))
               .replace(/[+\/]/g, function (m0) {
-                return m0 == "+" ? "-" : "_";
+                return m0 === "+" ? "-" : "_";
               })
               .replace(/=/g, "");
       }
@@ -245,13 +245,13 @@
           var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
           reIE.test(userAgent);
           var fIEVersion = parseFloat(RegExp["$1"]);
-          if (fIEVersion == 7) {
+          if (fIEVersion === 7) {
             return 7;
-          } else if (fIEVersion == 8) {
+          } else if (fIEVersion === 8) {
             return 8;
-          } else if (fIEVersion == 9) {
+          } else if (fIEVersion === 9) {
             return 9;
-          } else if (fIEVersion == 10) {
+          } else if (fIEVersion === 10) {
             return 10;
           } else {
             return 6; //IE版本<=7
@@ -272,7 +272,7 @@
       function guid() {
         return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
           var r = (Math.random() * 16) | 0,
-            v = c == "x" ? r : (r & 0x3) | 0x8;
+            v = c === "x" ? r : (r & 0x3) | 0x8;
           return v.toString(16);
         });
       }
@@ -282,7 +282,7 @@
        * 默认不带参数serverId，linux未升级之前不要使用多用户
        */
       function InitWpsCloudSvr() {
-        if (serverId == undefined) window.location.href = "ksoWPSCloudSvr://start=RelayHttpServer"; //是否启动wps弹框
+        if (serverId === undefined) window.location.href = "ksoWPSCloudSvr://start=RelayHttpServer"; //是否启动wps弹框
         else window.location.href = "ksoWPSCloudSvr://start=RelayHttpServer" + "&serverId=" + serverId; //是否启动wps弹框
       }
 
@@ -321,10 +321,10 @@
           //这俩配置，取一即可，不可同时启用
           xmlReq.open(reqInner.type, reqInner.url);
           xmlReq.onload = function (res) {
-            if (res.target.status != 200) {
+            if (res.target.status !== 200) {
               var responseStr = IEVersion() < 10 ? xmlReq.responseText : res.target.response;
               var errorMessage = JSON.parse(responseStr);
-              if (errorMessage.data == "Subserver not available." && tryCount == 4 && bPop) {
+              if (errorMessage.data === "Subserver not available." && tryCount === 4 && bPop) {
                 InitWpsCloudSvr();
                 setTimeout(function () {
                   if (bRetry) {
@@ -355,7 +355,7 @@
           };
           if (IEVersion() < 10) {
             xmlReq.onreadystatechange = function () {
-              if (xmlReq.readyState != 4) return;
+              if (xmlReq.readyState !== 4) return;
               if (xmlReq.bTimeout) {
                 return;
               }
@@ -411,7 +411,7 @@
         };
         if (IEVersion() < 10) {
           xmlReq.onreadystatechange = function () {
-            if (xmlReq.readyState != 4) return;
+            if (xmlReq.readyState !== 4) return;
             if (xmlReq.bTimeout) {
               return;
             }
@@ -440,10 +440,10 @@
         //var param = JSON.stringify(element).replace(/"/g, "\'");
         var buttonLabel = cmd === "enable" ? "安装" : "卸载";
         var des = "文字";
-        if (element.addonType == "et") des = "电子表格";
-        else if (element.addonType == "wpp") des = "演示";
+        if (element.addonType === "et") des = "电子表格";
+        else if (element.addonType === "wpp") des = "演示";
         var loadType = "在线";
-        if (element.online == "false") loadType = "离线";
+        if (element.online === "false") loadType = "离线";
         var old = document.getElementById(id);
         if (old !== null) {
           var oldOnline = old.wpsaddon.online === "false";
@@ -513,11 +513,14 @@
         var data = FormartData(element, cmd);
         var req = { url: "http://localhost:58890/deployaddons/runParams", type: "POST" };
         startWps(req, data, function (res) {
-          if (res.status == 0) {
+          if (res.status === 0) {
             if (cmd === "disableall") {
               window.location.reload();
             } else {
-              if (res.res.target.response == "OK" || (res.res.target.response == "" && res.res.target.status == 200)) {
+              if (
+                res.res.target.response === "OK" ||
+                (res.res.target.response === "" && res.res.target.status === 200)
+              ) {
                 var newCmd = "disable";
                 if (cmd === "disable") newCmd = "enable";
                 UpdateElement(element, newCmd);
@@ -548,7 +551,7 @@
         var strData = JSON.stringify(data);
         if (IEVersion() < 10) eval("strData = '" + JSON.stringify(strData) + "';");
 
-        if (serverVersion >= "1.0.2" && serverId != undefined) {
+        if (serverVersion >= "1.0.2" && serverId !== undefined) {
           var base64Data = encode(strData);
           return JSON.stringify({
             serverId: serverId,
@@ -561,10 +564,10 @@
 
       function LoadLocalAddons() {
         var baseData;
-        if (serverVersion >= "1.0.2" && serverId != undefined) baseData = JSON.stringify({ serverId: serverId });
+        if (serverVersion >= "1.0.2" && serverId !== undefined) baseData = JSON.stringify({ serverId: serverId });
         var req = { url: "http://127.0.0.1:58890/publishlist", type: "POST" };
         startWps(req, baseData, function (res) {
-          if (res.status == 0) {
+          if (res.status === 0) {
             var addonList = document.getElementById("addonList");
             var curList = JSON.parse(res.res.target.response);
             curList.forEach(function (element) {
@@ -580,6 +583,13 @@
       function LoadPublishAddons() {
         var addonList = document.getElementById("addonList");
         var curList = PUBLISH_REPLACE_STRING;
+        if (DYNAMIC_REPLACE_STRING) {
+          const url = window.location.href;
+          curList = curList.map((e) => {
+            e.url = url.slice(0, url.lastIndexOf("/")) + e.url.slice(e.url.lastIndexOf("/"));
+            return e;
+          });
+        }
         curList.forEach(function (element) {
           var param = JSON.stringify(element).replace('"', "'");
           UpdateElement(element, "enable");
@@ -593,7 +603,7 @@
           if (res.status !== 0) {
             return;
           }
-          if (serverVersion == "wait") {
+          if (serverVersion === "wait") {
             serverVersion = res.res.target.response;
             LoadPublishAddons();
             LoadLocalAddons();
