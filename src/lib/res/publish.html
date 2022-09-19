@@ -130,7 +130,7 @@
     </style>
     <script>
       function getHttpObj() {
-        var httpobj = null;
+        let httpobj = null;
         if (IEVersion() < 10) {
           try {
             httpobj = new XDomainRequest();
@@ -149,14 +149,14 @@
           return new XMLHttpRequest();
         } else if (typeof ActiveXObject != "undefined") {
           //IE6 采用 ActiveXObject， 兼容IE6
-          var versions = [
+          const versions = [
             //由于MSXML库有3个版本，因此都要考虑
             "MSXML2.XMLHttp.6.0",
             "MSXML2.XMLHttp.3.0",
             "MSXML2.XMLHttp",
           ];
 
-          for (var i = 0; i < versions.length; i++) {
+          for (let i = 0; i < versions.length; i++) {
             try {
               return new ActiveXObject(versions[i]);
             } catch (e) {
@@ -168,9 +168,9 @@
         }
       }
 
-      var fromCharCode = String.fromCharCode;
+      const fromCharCode = String.fromCharCode;
       // encoder stuff
-      var cb_utob = function (c) {
+      const cb_utob = function (c) {
         if (c.length < 2) {
           var cc = c.charCodeAt(0);
           return cc < 0x80
@@ -190,12 +190,12 @@
           );
         }
       };
-      var re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
-      var utob = function (u) {
+      const re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
+      const utob = function (u) {
         return u.replace(re_utob, cb_utob);
       };
-      var _encode = function (u) {
-        var isUint8Array = Object.prototype.toString.call(u) === "[object Uint8Array]";
+      const _encode = function (u) {
+        const isUint8Array = Object.prototype.toString.call(u) === "[object Uint8Array]";
         if (isUint8Array) return u.toString("base64");
         else return btoa(utob(String(u)));
       };
@@ -203,8 +203,8 @@
       if (typeof btoa !== "function") btoa = func_btoa;
 
       function func_btoa(input) {
-        var str = String(input);
-        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        const str = String(input);
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
         for (
           // initialize result and counter
           var block, charCode, idx = 0, map = chars, output = "";
@@ -237,14 +237,14 @@
       }
 
       function IEVersion() {
-        var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
-        var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1; //判断是否IE<11浏览器
-        var isEdge = userAgent.indexOf("Edge") > -1 && !isIE; //判断是否IE的Edge浏览器
-        var isIE11 = userAgent.indexOf("Trident") > -1 && userAgent.indexOf("rv:11.0") > -1;
+        const userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+        const isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1; //判断是否IE<11浏览器
+        const isEdge = userAgent.indexOf("Edge") > -1 && !isIE; //判断是否IE的Edge浏览器
+        const isIE11 = userAgent.indexOf("Trident") > -1 && userAgent.indexOf("rv:11.0") > -1;
         if (isIE) {
-          var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
+          const reIE = new RegExp("MSIE (\\d+\\.\\d+);");
           reIE.test(userAgent);
-          var fIEVersion = parseFloat(RegExp["$1"]);
+          const fIEVersion = parseFloat(RegExp["$1"]);
           if (fIEVersion === 7) {
             return 7;
           } else if (fIEVersion === 8) {
@@ -271,7 +271,7 @@
        */
       function guid() {
         return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-          var r = (Math.random() * 16) | 0,
+          const r = (Math.random() * 16) | 0,
             v = c === "x" ? r : (r & 0x3) | 0x8;
           return v.toString(16);
         });
@@ -286,7 +286,7 @@
         else window.location.href = "ksoWPSCloudSvr://start=RelayHttpServer" + "&serverId=" + serverId; //是否启动wps弹框
       }
 
-      var serverId = SERVERID_REPLACE_STRING;
+      let serverId = SERVERID_REPLACE_STRING;
 
       /**
        * 获取serverId的接口
@@ -315,15 +315,15 @@
               });
             return;
           }
-          var bRetry = true;
-          var xmlReq = getHttpObj();
+          let bRetry = true;
+          const xmlReq = getHttpObj();
           //WPS客户端提供的接收参数的本地服务，HTTP服务端口为58890，HTTPS服务端口为58891
           //这俩配置，取一即可，不可同时启用
           xmlReq.open(reqInner.type, reqInner.url);
           xmlReq.onload = function (res) {
             if (res.target.status !== 200) {
-              var responseStr = IEVersion() < 10 ? xmlReq.responseText : res.target.response;
-              var errorMessage = JSON.parse(responseStr);
+              const responseStr = IEVersion() < 10 ? xmlReq.responseText : res.target.response;
+              const errorMessage = JSON.parse(responseStr);
               if (errorMessage.data === "Subserver not available." && tryCount === 4 && bPop) {
                 InitWpsCloudSvr();
                 setTimeout(function () {
@@ -371,11 +371,11 @@
       }
 
       function CheckPlugin(element) {
-        var id = GetAddonId(element);
-        var ele = document.getElementById(id + "_status");
-        var xmlReq = getHttpObj();
-        var offline = element.online === "false";
-        var url = offline ? element.url : element.url + "ribbon.xml";
+        const id = GetAddonId(element);
+        const ele = document.getElementById(id + "_status");
+        const xmlReq = getHttpObj();
+        const offline = element.online === "false";
+        const url = offline ? element.url : element.url + "ribbon.xml";
         xmlReq.open("POST", "http://localhost:58890/redirect/runParams");
         xmlReq.onload = function (res) {
           if (
@@ -420,12 +420,12 @@
           };
         }
         xmlReq.timeout = 5000;
-        var data = {
+        const data = {
           method: "get",
           url: url,
           data: "",
         };
-        var sendData = FormatSendData(data);
+        const sendData = FormatSendData(data);
         xmlReq.send(sendData);
       }
 
@@ -435,19 +435,19 @@
 
       function UpdateElement(element, cmd) {
         if (typeof element.name === "undefined") return;
-        var id = GetAddonId(element);
-        var addonList = document.getElementById("addonList");
+        const id = GetAddonId(element);
+        const addonList = document.getElementById("addonList");
         //var param = JSON.stringify(element).replace(/"/g, "\'");
-        var buttonLabel = cmd === "enable" ? "安装" : "卸载";
-        var des = "文字";
+        let buttonLabel = cmd === "enable" ? "安装" : "卸载";
+        let des = "文字";
         if (element.addonType === "et") des = "电子表格";
         else if (element.addonType === "wpp") des = "演示";
-        var loadType = "在线";
+        let loadType = "在线";
         if (element.online === "false") loadType = "离线";
-        var old = document.getElementById(id);
+        const old = document.getElementById(id);
         if (old !== null) {
-          var oldOnline = old.wpsaddon.online === "false";
-          var newOnline = element.online === "false";
+          const oldOnline = old.wpsaddon.online === "false";
+          const newOnline = element.online === "false";
           if (
             cmd === "disable" &&
             (oldOnline !== newOnline ||
@@ -460,7 +460,7 @@
           old.wpsaddoncmd = cmd;
           document.getElementById(id + "_button").innerHTML = buttonLabel;
         } else {
-          var ele = document.createElement("div");
+          const ele = document.createElement("div");
           ele.className = "addonItem";
           ele.id = id;
           ele.wpsaddon = element;
@@ -496,9 +496,9 @@
       }
 
       function WpsAddonHandle(id) {
-        var ele = document.getElementById(id);
-        var element = ele.wpsaddon;
-        var cmd = ele.wpsaddoncmd;
+        const ele = document.getElementById(id);
+        const element = ele.wpsaddon;
+        const cmd = ele.wpsaddoncmd;
         WpsAddonHandleEx(element, cmd);
       }
 
@@ -510,8 +510,8 @@
             cmd = "disable";
           }
         }
-        var data = FormartData(element, cmd);
-        var req = { url: "http://localhost:58890/deployaddons/runParams", type: "POST" };
+        const data = FormartData(element, cmd);
+        const req = { url: "http://localhost:58890/deployaddons/runParams", type: "POST" };
         startWps(req, data, function (res) {
           if (res.status === 0) {
             if (cmd === "disableall") {
@@ -521,7 +521,7 @@
                 res.res.target.response === "OK" ||
                 (res.res.target.response === "" && res.res.target.status === 200)
               ) {
-                var newCmd = "disable";
+                let newCmd = "disable";
                 if (cmd === "disable") newCmd = "enable";
                 UpdateElement(element, newCmd);
                 alert("配置成功！");
@@ -536,7 +536,7 @@
       }
 
       function FormartData(element, cmd) {
-        var data = {
+        const data = {
           cmd: cmd, //"enable", 启用， "disable", 禁用, "disableall", 禁用所有
           name: element.name,
           url: element.url,
@@ -548,11 +548,11 @@
       }
 
       function FormatSendData(data) {
-        var strData = JSON.stringify(data);
+        const strData = JSON.stringify(data);
         if (IEVersion() < 10) eval("strData = '" + JSON.stringify(strData) + "';");
 
         if (serverVersion >= "1.0.2" && serverId !== undefined) {
-          var base64Data = encode(strData);
+          const base64Data = encode(strData);
           return JSON.stringify({
             serverId: serverId,
             data: base64Data,
@@ -563,13 +563,13 @@
       }
 
       function LoadLocalAddons() {
-        var baseData;
+        let baseData;
         if (serverVersion >= "1.0.2" && serverId !== undefined) baseData = JSON.stringify({ serverId: serverId });
-        var req = { url: "http://127.0.0.1:58890/publishlist", type: "POST" };
+        const req = { url: "http://127.0.0.1:58890/publishlist", type: "POST" };
         startWps(req, baseData, function (res) {
           if (res.status === 0) {
-            var addonList = document.getElementById("addonList");
-            var curList = JSON.parse(res.res.target.response);
+            const addonList = document.getElementById("addonList");
+            const curList = JSON.parse(res.res.target.response);
             curList.forEach(function (element) {
               if (element.enable === "false") return;
               UpdateElement(element, "disable");
@@ -581,8 +581,8 @@
       }
 
       function LoadPublishAddons() {
-        var addonList = document.getElementById("addonList");
-        var curList = PUBLISH_REPLACE_STRING;
+        const addonList = document.getElementById("addonList");
+        let curList = PUBLISH_REPLACE_STRING;
         if (DYNAMIC_REPLACE_STRING) {
           const url = window.location.href;
           curList = curList.map((e) => {
@@ -591,14 +591,14 @@
           });
         }
         curList.forEach(function (element) {
-          var param = JSON.stringify(element).replace('"', "'");
+          const param = JSON.stringify(element).replace('"', "'");
           UpdateElement(element, "enable");
         });
       }
 
-      var serverVersion = "wait";
+      let serverVersion = "wait";
       function InitSdk() {
-        var req = { url: "http://127.0.0.1:58890/version", type: "POST" };
+        const req = { url: "http://127.0.0.1:58890/version", type: "POST" };
         startWps(req, JSON.stringify({ serverId: serverId }), function (res) {
           if (res.status !== 0) {
             return;
@@ -612,16 +612,16 @@
       }
 
       function LoadAddons() {
-        var addonList = document.getElementById("addonList");
+        const addonList = document.getElementById("addonList");
         addonList.style.maxWidth = 800 * window.devicePixelRatio + "px";
-        var ClearAll = document.getElementById("ClearAll");
+        const ClearAll = document.getElementById("ClearAll");
         ClearAll.style.maxWidth = 800 * window.devicePixelRatio + "px";
         InitSdk();
       }
 
       function ClearAll() {
         if (confirm("确定要禁用所有WPS加载项吗？")) {
-          var element = {};
+          const element = {};
           WpsAddonHandleEx(element, "disableall");
         }
       }

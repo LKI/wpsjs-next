@@ -1,7 +1,7 @@
 const inquirer = require("inquirer");
 const fsEx = require("fs-extra");
 
-async function join(options) {
+async function join() {
   inquirer
     .prompt({
       name: "pluginType",
@@ -24,11 +24,11 @@ async function join(options) {
     })
     .then((answers) => {
       const cfgPath = "package.json";
-      var cfgData = fsEx.readFileSync(cfgPath);
-      var oldCfg = JSON.parse(cfgData);
+      let cfgData = fsEx.readFileSync(cfgPath);
+      const oldCfg = JSON.parse(cfgData);
 
-      var projectCfg = { name: "", addonType: answers.pluginType, version: "1.0.0" };
-      for (key in oldCfg) projectCfg[key] = oldCfg[key];
+      const projectCfg = { name: "", addonType: answers.pluginType, version: "1.0.0" };
+      for (let key in oldCfg) projectCfg[key] = oldCfg[key];
       projectCfg.addonType = answers.pluginType;
       cfgData = JSON.stringify(projectCfg, "", "\t");
       fsEx.writeFileSync(cfgPath, cfgData);

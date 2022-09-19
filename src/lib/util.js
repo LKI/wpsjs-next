@@ -1,12 +1,10 @@
-const express = require("express");
 const portfinder = require("portfinder");
 const os = require("os");
 const path = require("path");
 const fsEx = require("fs-extra");
 const fswin = require("fswin");
-var cp = require("child_process");
+const cp = require("child_process");
 
-const app = express();
 let netPort = 3889;
 let bInited = false;
 let _hasGit;
@@ -17,7 +15,7 @@ let bdemoServerInited = false;
 function projectCfg() {
   const cwd = process.cwd();
   const cfgPath = path.resolve(cwd, "package.json");
-  var cfgData = fsEx.readFileSync(cfgPath);
+  const cfgData = fsEx.readFileSync(cfgPath);
   return JSON.parse(cfgData);
 }
 
@@ -47,7 +45,7 @@ async function GetWebSiteHost(port, cb) {
 }
 
 function GetNpmCmd() {
-  if (os.platform() == "win32") return "npm.cmd";
+  if (os.platform() === "win32") return "npm.cmd";
   return "npm";
 }
 
@@ -84,7 +82,7 @@ function GetDebugTempPath(noCreate) {
   else tempPath = path.resolve(process.cwd(), "public", tempPath);
   if (noCreate !== true && !fsEx.pathExistsSync(tempPath)) {
     fsEx.ensureDirSync(tempPath);
-    if (os.platform() == "win32") fswin.setAttributesSync(tempPath, { IS_HIDDEN: true });
+    if (os.platform() === "win32") fswin.setAttributesSync(tempPath, { IS_HIDDEN: true });
   }
   return tempPath;
 }

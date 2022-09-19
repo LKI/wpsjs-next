@@ -1,8 +1,8 @@
-var cp = require("child_process");
+const cp = require("child_process");
 const express = require("express");
-var ini = require("ini");
+const ini = require("ini");
 const os = require("os");
-var builder = require("xmlbuilder");
+const builder = require("xmlbuilder");
 const fs = require("fs");
 const fsEx = require("fs-extra");
 const path = require("path");
@@ -56,7 +56,6 @@ function suRoot(tryCount, cb) {
         if (res) {
           bSuRoot = true;
           cb(true);
-          return;
         } else {
           suRoot(--tryCount, cb);
         }
@@ -84,8 +83,8 @@ async function debug(options) {
   if (options.server) bServerOnly = true;
   if (options.debug) bDebug = true;
   //config oem.ini
-  jsUtil.GetWebSiteHost(options.port, (host, port) => {
-    if (options.port && options.port != port) {
+  return jsUtil.GetWebSiteHost(options.port, (host, port) => {
+    if (options.port && options.port !== port) {
       console.log(chalk.red(`服务启动失败，端口（${options.port}）被占用`));
       return;
     }
@@ -94,14 +93,14 @@ async function debug(options) {
     //jspluginsXmlUrl = `${serverHost}/jsplugins.xml`
 
     configOem((ret) => {
-      if (ret.status != 0) {
+      if (ret.status !== 0) {
         console.error(ret.msg);
         return;
       }
 
       //write jsplugins.xml
-      var pluginXml = builder.create("jsplugins");
-      var addonType = projectCfg.addonType ? projectCfg.addonType : "et";
+      let pluginXml = builder.create("jsplugins");
+      let addonType = projectCfg.addonType ? projectCfg.addonType : "et";
       if (bDebug) {
         pluginXml
           .ele("jspluginonline")
@@ -129,20 +128,26 @@ async function debug(options) {
   });
 }
 
-let vueTryCount = 0;
-let vueJspluginsXml;
+let wpsTryCount = 0;
+let wpsJspluginsXml;
+
+function Debug(jspluginsXml, tag, cmd) {
+  if (projectCfg.scripts[tag].trim() !== cmd) {
+    let cfgData = JSON.stringify(projectCfg, null, 2);
+    fsEx.writeFileSync("package.json", cfgData);
+  }
+
+  cp.spawn(jsUtil.GetNpmCmd(), ["run", tag], { stdio: "inherit" });
+  wpsTryCount = 0;
+  wpsJspluginsXml = jspluginsXml;
+  setTimeout(TryStartWps, 1000);
+}
+
 function DebugVue(jspluginsXml, tag) {
   if (projectCfg.scripts && typeof projectCfg.scripts[tag] == "string") {
     let devCmd = projectCfg.scripts[tag].trim();
     if (devCmd.startsWith("vue-cli-service")) {
-      projectCfg.scripts[tag] = `vue-cli-service serve --port ${serverPort}`;
-      cfgData = JSON.stringify(projectCfg, "", "\t");
-      fsEx.writeFileSync("package.json", cfgData);
-
-      cp.spawn(jsUtil.GetNpmCmd(), ["run", tag], { stdio: "inherit" });
-      vueTryCount = 0;
-      vueJspluginsXml = jspluginsXml;
-      setTimeout(TryStartWps, 1000);
+      Debug(jspluginsXml, tag, `vue-cli-service serve --port ${serverPort}`);
       return true;
     }
   }
@@ -153,15 +158,13 @@ function DebugReact(jspluginsXml, tag) {
   if (projectCfg.scripts && typeof projectCfg.scripts[tag] == "string") {
     let devCmd = projectCfg.scripts[tag].trim();
     if (devCmd.includes("react-scripts")) {
-      if (os.platform() == "win32") projectCfg.scripts[tag] = `set PORT=${serverPort} && react-scripts start`;
-      else projectCfg.scripts[tag] = `export PORT=${serverPort} react-scripts start`;
-      cfgData = JSON.stringify(projectCfg, "", "\t");
-      fsEx.writeFileSync("package.json", cfgData);
-
-      cp.spawn(jsUtil.GetNpmCmd(), ["run", tag], { stdio: "inherit" });
-      vueTryCount = 0;
-      vueJspluginsXml = jspluginsXml;
-      setTimeout(TryStartWps, 1000);
+      let cmd;
+      if (os.platform() === "win32") {
+        cmd = `set PORT=${serverPort} && react-scripts start`;
+      } else {
+        cmd = `export PORT=${serverPort} react-scripts start`;
+      }
+      Debug(jspluginsXml, tag, cmd);
       return true;
     }
   }
@@ -169,15 +172,15 @@ function DebugReact(jspluginsXml, tag) {
 }
 
 function TryStartWps() {
-  if (vueTryCount > 5) return;
+  if (wpsTryCount > 5) return;
   http
     .get(`${serverHost}/index.html`, (res) => {
-      vueTryCount = 6;
-      StartWps(vueJspluginsXml);
+      wpsTryCount = 6;
+      StartWps(wpsJspluginsXml);
       res.resume();
     })
-    .on("error", (e) => {
-      ++vueTryCount;
+    .on("error", () => {
+      ++wpsTryCount;
       setTimeout(TryStartWps, 1000);
     });
 }
@@ -188,10 +191,10 @@ function StartServer(jspluginsXml, callback) {
   app.all("*", function (req, response, next) {
     if (req.originalUrl.endsWith(".html") || req.originalUrl.endsWith(".htm")) {
       let filePath = rootPath + req.originalUrl;
-      var htmlData = fsEx.readFileSync(filePath);
+      let htmlData = fsEx.readFileSync(filePath);
       let pos = htmlData.indexOf("<body");
-      if (pos == -1) pos = htmlData.indexOf("<script");
-      if (pos == -1) {
+      if (pos === -1) pos = htmlData.indexOf("<script");
+      if (pos === -1) {
         pos = htmlData.indexOf("<html>");
         pos += 6;
       }
@@ -239,7 +242,7 @@ source.onmessage = handleMessage;`;
     clients.push(response);
   });
 
-  var server = app.listen(serverPort, function () {
+  let server = app.listen(serverPort, function () {
     console.log(jsUtil.getNow() + `启动本地web服务(${serverHost})成功！`);
     let lastTime = new Date();
     rcWatch(rootPath, () => {
@@ -267,30 +270,27 @@ source.onmessage = handleMessage;`;
 }
 
 function GetJspluginsXmlPath() {
-  let directPath = "";
-  if (os.platform() == "win32") {
-    directPath = path.resolve(process.env.APPDATA, "kingsoft/wps/jsaddons/jsplugins.xml");
-  } else {
-    directPath = path.resolve(process.env.HOME, ".local/share/Kingsoft/wps/jsaddons/jsplugins.xml");
+  if (os.platform() === "win32") {
+    return path.resolve(process.env.APPDATA, "kingsoft/wps/jsaddons/jsplugins.xml");
   }
-  return directPath;
+  return path.resolve(process.env.HOME, ".local/share/Kingsoft/wps/jsaddons/jsplugins.xml");
 }
 
 function StartWps(jspluginsXml) {
-  if (os.platform() == "win32") {
+  if (os.platform() === "win32") {
     StartWpsInner(jspluginsXml);
   } else {
     try {
       StartWpsInner(jspluginsXml);
     } catch (e) {
-      if (os.platform() == "win32") {
+      if (os.platform() === "win32") {
         console.log(e);
       } else {
         suRoot(3, (res) => {
           if (res) {
             let directPath = GetBackJspluginsXmlPath();
             directPath = path.resolve(directPath, "..");
-            sudo.exec(["chmod", "a+rw", directPath], (err, pid, result) => {
+            sudo.exec(["chmod", "a+rw", directPath], () => {
               StartWpsInner(jspluginsXml);
             });
           }
@@ -317,13 +317,13 @@ function StartWpsInner(jspluginsXml) {
 
   let demoName = "systemdemo.html";
   let systemDemoPath = path.resolve(__dirname, "res", demoName);
-  var demoData = fs.readFileSync(systemDemoPath);
+  let demoData = fs.readFileSync(systemDemoPath);
   let htmlDemo = path.resolve(jsUtil.GetDebugTempPath(), demoName);
   fsEx.writeFileSync(htmlDemo, demoData);
 
   let sdkName = "wpsjsrpcsdk.js";
   let systemDemoJs = path.resolve(__dirname, "../../node_modules/wpsjs-rpc-sdk", sdkName);
-  var sdkData = fs.readFileSync(systemDemoJs);
+  let sdkData = fs.readFileSync(systemDemoJs);
   let sdkDemo = path.resolve(jsUtil.GetDebugTempPath(), sdkName);
   fsEx.writeFileSync(sdkDemo, sdkData);
 
@@ -333,22 +333,22 @@ function StartWpsInner(jspluginsXml) {
   let urlDemo = path.resolve(jsUtil.GetDebugTempPath(), "NotifyDemoUrl");
   fsEx.writeFileSync(urlDemo, `${serverHost}/${jsUtil.GetDebugTempName()}/${demoName}`);
 
-  if (projectCfg.addonType == "wps") {
+  if (projectCfg.addonType === "wps") {
     let wpsfileName = "wpsDemo.docx";
     let wpsfilePath = path.resolve(__dirname, "res", wpsfileName);
-    var wpsfileData = fs.readFileSync(wpsfilePath);
+    let wpsfileData = fs.readFileSync(wpsfilePath);
     let wpsfileDst = path.resolve(jsUtil.GetDebugTempPath(), wpsfileName);
     fsEx.writeFileSync(wpsfileDst, wpsfileData);
-  } else if (projectCfg.addonType == "wpp") {
+  } else if (projectCfg.addonType === "wpp") {
     let wppfileName = "wppDemo.pptx";
     let wppfilePath = path.resolve(__dirname, "res", wppfileName);
-    var wppfileData = fs.readFileSync(wppfilePath);
+    let wppfileData = fs.readFileSync(wppfilePath);
     let wppfileDst = path.resolve(jsUtil.GetDebugTempPath(), wppfileName);
     fsEx.writeFileSync(wppfileDst, wppfileData);
-  } else if (projectCfg.addonType == "et") {
+  } else if (projectCfg.addonType === "et") {
     let etfileName = "etDemo.xlsx";
     let etfilePath = path.resolve(__dirname, "res", etfileName);
-    var etfileData = fs.readFileSync(etfilePath);
+    let etfileData = fs.readFileSync(etfilePath);
     let etfileDst = path.resolve(jsUtil.GetDebugTempPath(), etfileName);
     fsEx.writeFileSync(etfileDst, etfileData);
   }
@@ -358,12 +358,12 @@ function StartWpsInner(jspluginsXml) {
   //start wps
   GetExePath((cmd, args) => {
     //cmd = "f:\\work\\one\\debug\\WPSOffice\\office6\\wps.exe /prometheus /wps /t"
-    if (remoteDebuggingPort != -1) {
+    if (remoteDebuggingPort !== -1) {
       cmd += " " + `/JsApiremotedebuggingPort=${remoteDebuggingPort}`;
       let userDataDir = path.join(os.tmpdir(), `wpsjs-userdatadir_${remoteDebuggingPort}`);
       cmd += " " + `/JsApiUserDataDir=${userDataDir}`;
     }
-    if (os.platform() == "win32") {
+    if (os.platform() === "win32") {
       cp.spawn(cmd, args, { detached: true, stdio: ["ignore"] });
     } else {
       cp.spawn(cmd, { detached: true, stdio: ["ignore"] });
@@ -376,7 +376,7 @@ function tryconfigOemFileInner(oemPath, callback) {
     configOemFileInner(oemPath);
     callback({ status: 0, msg: "wps安装正常，" + oemPath + "文件设置正常。" });
   } catch (e) {
-    oemResult = "配置" + oemPath + "失败，请尝试以管理员重新运行！！";
+    let oemResult = "配置" + oemPath + "失败，请尝试以管理员重新运行！！";
     console.log(oemResult);
     console.log(e);
     return callback({ status: 1, msg: oemResult });
@@ -384,19 +384,19 @@ function tryconfigOemFileInner(oemPath, callback) {
 }
 
 function configOemFileInner(oemPath) {
-  var config = ini.parse(fs.readFileSync(oemPath, "utf-8"));
-  var sup = config.support || config.Support;
-  var ser = config.server || config.Server;
-  var needUpdate = false;
+  let config = ini.parse(fs.readFileSync(oemPath, "utf-8"));
+  let sup = config.support || config.Support;
+  let ser = config.server || config.Server;
+  let needUpdate = false;
   if (!sup || !sup.JsApiPlugin || !sup.JsApiShowWebDebugger) needUpdate = true;
-  if (!ser || ser.JSPluginsServer == undefined) needUpdate = true;
-  if (ser && ser.JSPluginsServer != jspluginsXmlUrl) {
+  if (!ser || ser.JSPluginsServer === undefined) needUpdate = true;
+  if (ser && ser.JSPluginsServer !== jspluginsXmlUrl) {
     needUpdate = true;
     let backPath = GetBackOemPath();
-    if (os.platform() == "win32") {
+    if (os.platform() === "win32") {
       if (!fsEx.pathExistsSync(backPath)) fs.writeFileSync(backPath, ini.stringify(config));
     } else {
-      sudo.exec(["chmod", "a+rw", backPath], (err, pid, result) => {
+      sudo.exec(["chmod", "a+rw", backPath], () => {
         if (!fsEx.pathExistsSync(backPath)) fs.writeFileSync(backPath, ini.stringify(config));
       });
     }
@@ -416,17 +416,17 @@ function configOemFileInner(oemPath) {
 }
 
 function GetExePath(callback) {
-  if (os.platform() == "win32") {
+  if (os.platform() === "win32") {
     let type = "KET.Sheet.12";
-    if (projectCfg.addonType == "wps") type = "KWPS.Document.12";
-    else if (projectCfg.addonType == "wpp") type = "KWPP.Presentation.12";
-    cp.exec(`REG QUERY HKEY_CLASSES_ROOT\\${type}\\shell\\new\\command /ve`, function (error, stdout, stderr) {
-      var strList = stdout.split("    ");
-      var val = strList.length > 2 ? strList[3] : undefined;
+    if (projectCfg.addonType === "wps") type = "KWPS.Document.12";
+    else if (projectCfg.addonType === "wpp") type = "KWPP.Presentation.12";
+    cp.exec(`REG QUERY HKEY_CLASSES_ROOT\\${type}\\shell\\new\\command /ve`, function (error, stdout) {
+      let strList = stdout.split("    ");
+      let val = strList.length > 2 ? strList[3] : undefined;
       if (typeof val == "undefined" || val == null) {
         throw new Error("WPS未安装，请安装WPS 2019 最新版本。");
       }
-      var pos = val.indexOf(".exe");
+      let pos = val.indexOf(".exe");
       if (pos < 0) {
         throw new Error("wps安装异常，请确认有没有正确的安装 WPS 2019最新版本！");
       }
@@ -438,7 +438,7 @@ function GetExePath(callback) {
       let cmds = cmdString.split('"');
       let exePath = cmds[0] ? cmds[0] : cmds[1];
       let rawArgs = [];
-      if (cmds.length == 1) {
+      if (cmds.length === 1) {
         let data = cmds[0].split(" ");
         exePath = data[0];
         rawArgs = data.splice(1);
@@ -463,29 +463,26 @@ function GetExePath(callback) {
 }
 
 function GetOffice6Path(callback) {
-  if (os.platform() == "win32") {
-    cp.exec(
-      "REG QUERY HKEY_CLASSES_ROOT\\KWPS.Document.12\\shell\\open\\command /ve",
-      function (error, stdout, stderr) {
-        var val = undefined;
-        try {
-          val = stdout.split("    ")[3].split('"')[1];
-        } catch (err) {
-          throw new Error("WPS未安装，请安装WPS 2019 最新版本。");
-        }
-        if (typeof val == "undefined" || val == null) {
-          throw new Error("WPS未安装，请安装WPS 2019 最新版本。");
-        }
-        var pos = val.indexOf("wps.exe");
-        if (pos < 0) pos = val.indexOf("wpsoffice.exe");
-        if (pos < 0) {
-          console.log(val);
-          throw new Error("wps安装异常，请确认有没有正确的安装WPS 2019 最新版本！");
-        }
-        let oemPath = val.substring(0, pos);
-        callback(oemPath);
+  if (os.platform() === "win32") {
+    cp.exec("REG QUERY HKEY_CLASSES_ROOT\\KWPS.Document.12\\shell\\open\\command /ve", function (error, stdout) {
+      let val = undefined;
+      try {
+        val = stdout.split("    ")[3].split('"')[1];
+      } catch (err) {
+        throw new Error("WPS未安装，请安装WPS 2019 最新版本。");
       }
-    );
+      if (typeof val == "undefined" || val == null) {
+        throw new Error("WPS未安装，请安装WPS 2019 最新版本。");
+      }
+      let pos = val.indexOf("wps.exe");
+      if (pos < 0) pos = val.indexOf("wpsoffice.exe");
+      if (pos < 0) {
+        console.log(val);
+        throw new Error("wps安装异常，请确认有没有正确的安装WPS 2019 最新版本！");
+      }
+      let oemPath = val.substring(0, pos);
+      callback(oemPath);
+    });
   } else {
     let oemPath = "/opt/kingsoft/wps-office/office6/";
     if (!fsEx.existsSync(oemPath)) oemPath = "/opt/apps/cn.wps.wps-office-pro/files/kingsoft/wps-office/office6/";
@@ -495,32 +492,32 @@ function GetOffice6Path(callback) {
 
 function GetOemPath(callback) {
   GetOffice6Path((path) => {
-    oemPath = path + "cfgs/oem.ini";
+    let oemPath = path + "cfgs/oem.ini";
     callback(oemPath);
   });
 }
 
 function configOem(callback) {
   try {
-    GetOemPath((path) => {
+    GetOemPath((oemPath) => {
       try {
         configOemFileInner(oemPath, callback);
         callback({ status: 0, msg: "wps安装正常，" + oemPath + "文件设置正常。" });
       } catch (e) {
-        if (os.platform() == "win32") {
-          oemResult = "配置" + oemPath + "失败，请尝试以管理员重新运行！！";
+        if (os.platform() === "win32") {
+          let oemResult = "配置" + oemPath + "失败，请尝试以管理员重新运行！！";
           console.log(oemResult);
           console.log(e);
           return callback({ status: 1, msg: oemResult });
         } else {
           suRoot(3, (res) => {
             if (res) {
-              sudo.exec(["chmod", "a+rw", oemPath], (err, pid, result) => {
+              sudo.exec(["chmod", "a+rw", oemPath], () => {
                 tryconfigOemFileInner(oemPath, callback);
                 cp.exec("quickstartoffice restart");
               });
             } else {
-              oemResult = "配置" + oemPath + "失败，请尝试以管理员重新运行！！";
+              let oemResult = "配置" + oemPath + "失败，请尝试以管理员重新运行！！";
               console.log(oemResult);
               console.log(e);
               return callback({ status: 1, msg: oemResult });

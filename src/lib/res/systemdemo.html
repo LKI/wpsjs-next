@@ -61,12 +61,12 @@
   </body>
   <script>
     //实际的开发中，业务系统与wps加载项的交互代码如下：
-    var WebNotifycount = 0;
-    var callbackFunc = function (result) {
-      if (result.status == 0) {
+    let WebNotifycount = 0;
+    const callbackFunc = function (result) {
+      if (result.status === 0) {
         //下面这行代码用来注册从wps加载项返回的消息的接收函数
         WpsInvoke.RegWebNotify(projInfo.type, projInfo.name, function (messageText) {
-          var span = document.getElementById("webnotifyspan");
+          const span = document.getElementById("webnotifyspan");
           span.innerHTML = "(次数：" + ++WebNotifycount + ")：" + messageText;
         });
         alert(result.response);
@@ -74,7 +74,7 @@
     };
 
     function openOfficeFile(param) {
-      var invokeParam = {
+      const invokeParam = {
         flag: "openOfficeFile",
         filepath: param,
       }; //根据需求任意定义
@@ -88,7 +88,7 @@
     }
 
     function onDivClick(param, showToFront) {
-      var invokeParam = {
+      const invokeParam = {
         按需求定义: "安需求给值",
         Index: param,
         AppType: projInfo.type,
@@ -108,34 +108,34 @@
 
     //WebNotifyUseTimeout()
     //EnableMultiUser();
-    var clientCount = 0;
-    var dialogProgress; //打开文件进度计数
-    var interval; //window.setInterval对象
+    let clientCount = 0;
+    let dialogProgress; //打开文件进度计数
+    let interval; //window.setInterval对象
     function openFileInSilentMode() {
-      var dlg = document.getElementById("tishi");
+      const dlg = document.getElementById("tishi");
       dlg.style.display = "block";
       dialogProgress = 0;
       interval = setInterval(updateProgress, 100);
       document.body.style.pointerEvents = "none";
 
-      var houzui = ".xlsx";
-      if (projInfo.type == "wps") houzui = ".docx";
-      else if (projInfo.type == "wpp") houzui = ".pptx";
-      var url =
+      const houzui = ".xlsx";
+      if (projInfo.type === "wps") houzui = ".docx";
+      else if (projInfo.type === "wpp") houzui = ".pptx";
+      const url =
         (location.protocol + "//" + location.host + location.pathname).slice(0, -15) + projInfo.type + "Demo" + houzui;
-      var wpsClient = new WpsClient(projInfo.type);
-      var eleId = "clientId" + ++clientCount;
-      var WebNotifycount = 0;
+      const wpsClient = new WpsClient(projInfo.type);
+      const eleId = "clientId" + ++clientCount;
+      let WebNotifycount = 0;
       wpsClient.onMessage = function (messageText) {
         ++WebNotifycount;
-        var spanDiv = document.getElementById("webnotifyCount" + eleId);
+        const spanDiv = document.getElementById("webnotifyCount" + eleId);
         spanDiv.innerText = "(次数：" + WebNotifycount + ")：";
-        var span = document.getElementById("webnotifyspan" + eleId);
+        const span = document.getElementById("webnotifyspan" + eleId);
         span.innerHTML = messageText;
       };
       //先静默启动客户端，在回调函数里面实现打开大文件
       wpsClient.StartWpsInSilentMode(projInfo.name, function () {
-        var invokeParam = {
+        const invokeParam = {
           按需求定义: "安需求给值",
           Index: "OpenFile",
           AppType: projInfo.type,
@@ -159,7 +159,7 @@
         //console.log(JSON.stringify(result))
         if (result.status !== 0) {
           setProgress(0);
-          var dlg = document.getElementById("tishi");
+          let dlg = document.getElementById("tishi");
           dlg.style.display = "none";
           document.body.style.pointerEvents = "auto";
           alert(result.message);
@@ -168,13 +168,13 @@
         setProgress(100);
         wpsClient.ShowToFront(projInfo.name, function () {
           setProgress(0);
-          var dlg = document.getElementById("tishi");
+          const dlg = document.getElementById("tishi");
           dlg.style.display = "none";
           document.body.style.pointerEvents = "auto";
         });
 
-        var rootElement = document.getElementById("rootClients");
-        var ele = document.createElement("div");
+        const rootElement = document.getElementById("rootClients");
+        const ele = document.createElement("div");
         ele.className = "addonItem";
         ele.id = eleId;
         ele.client = wpsClient;
@@ -209,7 +209,7 @@
     }
 
     function onClientGetFileName(clientId, param, showToFront) {
-      var invokeParam = {
+      const invokeParam = {
         按需求定义: "安需求给值",
         Index: param,
         AppType: projInfo.type,
@@ -217,7 +217,7 @@
           xxx定义: "xxx值",
         },
       }; //根据需求任意定义
-      var ele = document.getElementById(clientId);
+      const ele = document.getElementById(clientId);
       ele.client.InvokeAsHttp(
         projInfo.name, //wps加载项的名字，在实际项目中写上对应的名字
         "InvokeFromSystemDemo", //要调用的在wps加载项中的函数名
@@ -228,9 +228,9 @@
 
       function clientCallbackFunc(result) {
         if (result.status !== 0) {
-          if (result.message == "Failed to send message to WPS.") {
+          if (result.message === "Failed to send message to WPS.") {
             ele.client.IsClientRunning(function (status) {
-              if (status.response == "Client is running.")
+              if (status.response === "Client is running.")
                 alert("任务发送失败，WPS 正在执行其他任务，请前往WPS完成当前任务");
               else alert("WPS 客户端被关闭了!");
             });
@@ -247,10 +247,10 @@
       setProgress(++dialogProgress);
     }
     function setProgress(newValue) {
-      if (newValue < 90 || newValue == 100) {
-        var progress = document.getElementById("openFile");
+      if (newValue < 90 || newValue === 100) {
+        const progress = document.getElementById("openFile");
         progress.value = newValue;
-        var span = document.getElementById("openfilespan");
+        const span = document.getElementById("openfilespan");
         span.innerHTML = newValue;
       }
     }

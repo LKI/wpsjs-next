@@ -4,7 +4,7 @@ const fsEx = require("fs-extra");
 const path = require("path");
 const execa = require("execa");
 const chalk = require("chalk");
-var cp = require("child_process");
+const cp = require("child_process");
 const jsUtil = require("./util.js");
 
 const pluginsDirPath = path.resolve(__dirname, "../../packages", "@wps-jsapi");
@@ -73,7 +73,7 @@ async function create(projectName, options) {
     .then((answers) => {
       context = targetDir;
       let demoType = answers.pluginType;
-      if (answers.frameType != "none") demoType = `${answers.pluginType}_${answers.frameType}`;
+      if (answers.frameType !== "none") demoType = `${answers.pluginType}_${answers.frameType}`;
       const pluginPath = path.resolve(pluginsDirPath, demoType);
       fs.readdir(pluginPath, (_, files) => {
         files.forEach((file) => {
@@ -83,11 +83,11 @@ async function create(projectName, options) {
         });
 
         const cfgPath = path.resolve(targetDir, "package.json");
-        var cfgData = fsEx.readFileSync(cfgPath);
-        var oldCfg = JSON.parse(cfgData);
+        let cfgData = fsEx.readFileSync(cfgPath);
+        const oldCfg = JSON.parse(cfgData);
 
-        var projectCfg = { name: projectName, addonType: answers.pluginType, version: "1.0.0" };
-        for (key in oldCfg) projectCfg[key] = oldCfg[key];
+        const projectCfg = { name: projectName, addonType: answers.pluginType, version: "1.0.0" };
+        for (let key in oldCfg) projectCfg[key] = oldCfg[key];
         projectCfg.name = projectName;
         projectCfg.addonType = answers.pluginType;
         projectCfg.version = "1.0.0";
@@ -99,7 +99,7 @@ async function create(projectName, options) {
     });
 }
 
-async function initAddOn(targetDir, projectName, answers) {
+async function initAddOn(targetDir, projectName) {
   if (jsUtil.hasGit()) {
     await run("git init");
     await run("git add -A");

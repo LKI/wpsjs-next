@@ -1,16 +1,15 @@
 const fs = require("fs");
-const fsEx = require("fs-extra");
 const path = require("path");
 const chalk = require("chalk");
 const defaultsDeep = require("lodash.defaultsdeep");
-var cp = require("child_process");
+const cp = require("child_process");
 const jsUtil = require("./util.js");
 let projectCfg = jsUtil.projectCfg();
 
 //read config
 function loadUserOptions() {
   // vue.config.js
-  let fileConfig, pkgConfig, resolved, resolvedFrom;
+  let fileConfig, pkgConfig, resolved;
   const configPath = process.env.VUE_CLI_SERVICE_CONFIG_PATH || path.resolve(process.cwd(), "vue.config.js");
   if (fs.existsSync(configPath)) {
     try {
@@ -45,13 +44,10 @@ function loadUserOptions() {
       warn(`You should migrate it into ${chalk.bold("vue.config.js")} ` + `and remove it from package.json.`);
     }
     resolved = fileConfig;
-    resolvedFrom = "vue.config.js";
   } else if (pkgConfig) {
     resolved = pkgConfig;
-    resolvedFrom = '"vue" field in package.json';
   } else {
     resolved = {};
-    resolvedFrom = "inline options";
   }
 
   if (resolved.css && typeof resolved.css.modules !== "undefined") {
@@ -169,7 +165,7 @@ function hasMultipleCores() {
 function buildVue(options) {
   const userOptions = loadUserOptions();
   let projectOptions = defaultsDeep(userOptions, defaults());
-  if (options.pluginType == "offline" && projectOptions.publicPath.trim() != "") {
+  if (options.pluginType === "offline" && projectOptions.publicPath.trim() !== "") {
     throw new Error(
       "生成离线加载项 publicPath 必须为 ''，请修改后重试。参考在package.json中添加：" +
         `

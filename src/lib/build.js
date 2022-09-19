@@ -2,7 +2,6 @@ const inquirer = require("inquirer");
 const fs = require("fs");
 const fsEx = require("fs-extra");
 const path = require("path");
-var builder = require("xmlbuilder");
 const _7z = require("7zip-min");
 const jsUtil = require("./util.js");
 let projectCfg = jsUtil.projectCfg();
@@ -50,26 +49,26 @@ async function buildWithArgs(answers) {
   fsEx.removeSync(publishRoot);
   let buildRoot = path.resolve(curDir, buildDirectory);
   let distPath = buildRoot;
-  if (answers.pluginType == "offline") distPath = path.resolve(buildRoot, `${projectCfg.name}_${projectCfg.version}`);
+  if (answers.pluginType === "offline") distPath = path.resolve(buildRoot, `${projectCfg.name}_${projectCfg.version}`);
   fsEx.removeSync(buildRoot);
   fs.readdir(buildDir, (_, files) => {
     files.forEach((file) => {
       if (
-        file != buildDirectory &&
-        file != "node_modules" &&
-        file != ".vscode" &&
-        file != ".git" &&
-        file != "package.json" &&
-        file != "package-lock.json"
+        file !== buildDirectory &&
+        file !== "node_modules" &&
+        file !== ".vscode" &&
+        file !== ".git" &&
+        file !== "package.json" &&
+        file !== "package-lock.json"
       ) {
         const srcPath = path.resolve(buildDir, file);
         fsEx.copySync(srcPath, path.resolve(distPath, file));
       }
     });
 
-    if (answers.pluginType == "offline") {
+    if (answers.pluginType === "offline") {
       let path7z = path.resolve(buildRoot, `${projectCfg.name}.7z`);
-      _7z.pack(distPath, path7z, (err) => {
+      _7z.pack(distPath, path7z, () => {
         fsEx.removeSync(distPath);
       });
     }

@@ -28,7 +28,7 @@ program
   .description("接入 WPS 加载项，将已有的前端工程快速提升为 WPS 加载项，开始应用与 WPS 的交互功能")
   .allowUnknownOption()
   .action((cmd) => {
-    require("./lib/join")();
+    require("./lib/join")(cleanArgs(cmd));
   });
 
 program
@@ -50,7 +50,7 @@ program
   .description("打包 WPS 加载项")
   .allowUnknownOption()
   .action((cmd) => {
-    require("./lib/build.js").build();
+    require("./lib/build.js").build(cleanArgs(cmd));
   });
 
 program
@@ -71,7 +71,7 @@ program
   .description("取消发布 WPS 加载项")
   .allowUnknownOption()
   .action((cmd) => {
-    require("./lib/unpublish")();
+    require("./lib/unpublish")(cleanArgs(cmd));
   });
 
 program.arguments("<command>").action((cmd) => {
