@@ -26,7 +26,8 @@
     "email": "liriansu@gmail.com"
   },
   "bin": {
-    "wpsjs-next": "./src/index.js"
+    "wpsjs-next": "./src/index.js",
+    "wpsjs": "./src/index.js"
   },
   "license": "ISC",
   "devDependencies": {
