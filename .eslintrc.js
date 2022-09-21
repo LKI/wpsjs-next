@@ -5,6 +5,7 @@ module.exports = {
     es2021: true,
   },
   extends: ["eslint:recommended", "prettier"],
+  ignorePatterns: ["packages/*"],
   overrides: [],
   parserOptions: {
     ecmaVersion: "latest",

@@ -9,7 +9,7 @@
     "check-prettier": "prettier --check --cache .",
     "fix": "npm run fix-eslint && npm run fix-prettier",
     "fix-eslint": "eslint --fix --cache .",
-    "fix-prettier": "prettier --write --cache .",
+    "fix-prettier": "prettier --write --cache . --loglevel warn",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

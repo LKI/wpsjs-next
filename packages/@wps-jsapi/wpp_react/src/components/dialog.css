@@ -1,0 +1,24 @@
+button {
+  margin: 4px;
+}
+
+.global {
+  font-size: 15px;
+  min-height: 95%;
+}
+
+.divItem {
+  margin-left: 5px;
+  margin-bottom: 18px;
+  font-size: 15px;
+  word-wrap: break-word;
+}
+
+.debug {
+  font-weight: bolder;
+}
+
+.docs {
+  font-weight: bolder;
+  color: slateblue;
+}
