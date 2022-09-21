@@ -1,6 +1,6 @@
 {
   "name": "wpsjs-next",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "用于开发wps加载项的工具包",
   "main": "./src/index.js",
   "scripts": {
